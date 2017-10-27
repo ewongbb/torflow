@@ -324,7 +324,7 @@ class ConsensusJunk:
                     plog("INFO",
                          "Got guard_sample_rate=%d from consensus." %
                          self.guard_sample_rate)
-        except:
+        except Exception, e:
             plog("NOTICE", "Bw auth PID control disabled due to parse error.")
             traceback.print_exc()
 
@@ -1025,17 +1025,17 @@ def main(argv):
     n_nodes = filter(lambda n: n.pid_error < 0, nodes.itervalues())
     p_nodes = filter(lambda n: n.pid_error > 0, nodes.itervalues())
     plog("INFO",
-         "Avg. Network  pid_error=%s" % str(sum_lamda_nodes_iter(n, None,
-                                                                 nodes)))
-    plog("INFO",
-         "Avg. Network |pid_error|=%s" % str(sum_lamda_nodes_iter(n, abs,
+         "Avg. Network  pid_error=%s" % str(sum_lambda_nodes_iter(n, None,
                                                                   nodes)))
     plog("INFO",
-         "Avg. Network +pid_error=+%s" % str(sum_lamda_nodes(n, None,
-                                                             p_nodes)))
+         "Avg. Network |pid_error|=%s" % str(sum_lambda_nodes_iter(n, abs,
+                                                                   nodes)))
     plog("INFO",
-         "Avg. Network -pid_error=%s" % str(sum_lamda_nodes(n, None,
-                                                            n_nodes)))
+         "Avg. Network +pid_error=+%s" % str(sum_lambda_nodes(n, None,
+                                                              p_nodes)))
+    plog("INFO",
+         "Avg. Network -pid_error=%s" % str(sum_lamdba_nodes(n, None,
+                                                             n_nodes)))
 
     plog("NOTICE",
          "Measured %s% of all tor nodes "

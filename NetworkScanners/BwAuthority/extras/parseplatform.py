@@ -27,5 +27,5 @@ for l in f.readlines():
 
 (u, s) = logistic.estimate(upgrade_table)
 
-print "s=" + str(s) + ", u=" + str(u)
-print "Estimate 50% upgrade at: " + time.ctime(t0 + u)
+print("s=%s, u=%s" % (str(s), str(u)))
+print("Estimate 50% upgrade at: %s" % time.ctime(t0 + u))
