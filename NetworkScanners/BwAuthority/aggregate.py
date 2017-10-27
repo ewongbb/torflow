@@ -428,7 +428,7 @@ def main(argv):
 
     ns_list = c.get_network_status()
     for n in ns_list:
-        if n.bandwidth == None:
+        if n.bandwidth is None:
             n.bandwidth = -1
     ns_list.sort(
         lambda x, y: int(y.bandwidth / 10000.0 - x.bandwidth / 10000.0))
@@ -445,7 +445,7 @@ def main(argv):
     for i in xrange(max_rank):
         n = ns_list[i]
         n.list_rank = i
-        if n.bandwidth == None:
+        if n.bandwidth is None:
             plog("NOTICE",
                  "Your Tor is not providing NS w bandwidths for " + n.idhex)
         else:
@@ -455,11 +455,11 @@ def main(argv):
 
     if not got_ns_bw:
         # Sometimes the consensus lacks a descriptor. In that case,
-        # it will skip outputting 
+        # it will skip outputting
         plog("ERROR", "Your Tor is not providing NS w bandwidths!")
         sys.exit(0)
 
-    # Take the most recent timestamp from each scanner 
+    # Take the most recent timestamp from each scanner
     # and use the oldest for the timestamp of the result.
     # That way we can ensure all the scanners continue running.
     scanner_timestamps = {}
@@ -480,7 +480,8 @@ def main(argv):
                                 # old measurements are probably
                                 # better than no measurements. We may not
                                 # measure hibernating routers for days.
-                                # This filter is just to remove REALLY old files
+                                # This filter is just to remove REALLY
+                                # old files
                                 if time.time() - timestamp > MAX_AGE:
                                     sqlf = f.replace("bws-", "sql-")
                                     plog("INFO",
@@ -490,7 +491,9 @@ def main(argv):
                                     try:
                                         os.remove("%s/%s" % (sr, sqlf))
                                     except:
-                                        pass # In some cases the sql file may not exist
+                                        # In some cases the sql file may
+                                        # not exist
+                                        pass 
                                     continue
                                 if timestamp > newest_timestamp:
                                     newest_timestamp = timestamp
