@@ -629,36 +629,37 @@ def main(argv):
             true_filt_avg[cl] = filt_avg
             true_strm_avg[cl] = strm_avg
 
-
     prev_votes = None
     if cs_junk.bwauth_pid_control:
-      prev_votes = VoteSet(argv[-1])
+        prev_votes = VoteSet(argv[-1])
 
-      guard_cnt = 0
-      node_cnt = 0
-      guard_measure_time = 0
-      node_measure_time = 0
-      for n in nodes.itervalues():
-        if n.idhex in prev_votes.vote_map and n.idhex in prev_consensus:
-          if "Guard" in prev_consensus[n.idhex].flags and \
-             "Exit" not in prev_consensus[n.idhex].flags:
-            if n.measured_at != prev_votes.vote_map[n.idhex].measured_at:
-              guard_cnt += 1
-              guard_measure_time += (n.measured_at - \
-                                      prev_votes.vote_map[n.idhex].measured_at)
-          else:
-            if n.updated_at != prev_votes.vote_map[n.idhex].updated_at:
-              node_cnt += 1
-              node_measure_time += (n.updated_at - \
-                                    prev_votes.vote_map[n.idhex].updated_at)
+        guard_cnt = 0
+        node_cnt = 0
+        guard_measure_time = 0
+        node_measure_time = 0
+        for n in nodes.itervalues():
+            if n.idhex in prev_votes.vote_map and n.idhex in prev_consensus:
+                prev_flags = prev_consensus[n.idhex].flags
+                if "Guard" in prev_flags and "Exit" not in prev_flags:
+                  if n.measured_at != prev_votes.vote_map[n.idhex].measured_at:
+                      guard_cnt += 1
+                      guard_measure_time += (
+                          n.measured_at -
+                          prev_votes.vote_map[n.idhex].measured_at)
+              else:
+                  if n.updated_at != prev_votes.vote_map[n.idhex].updated_at:
+                      node_cnt += 1
+                      node_measure_time += (
+                          n.updated_at -
+                          prev_votes.vote_map[n.idhex].updated_at)
 
-      # TODO: We may want to try to use this info to autocompute T_d and
-      # maybe T_i?
-      if node_cnt > 0:
-        plog("INFO", "Avg of "+str(node_cnt)+" node update intervals: "+str((node_measure_time/node_cnt)/3600.0))
+        # TODO: We may want to try to use this info to autocompute T_d and
+        # maybe T_i?
+        if node_cnt > 0:
+            plog("INFO", "Avg of "+str(node_cnt)+" node update intervals: "+str((node_measure_time/node_cnt)/3600.0))
 
-      if guard_cnt > 0:
-        plog("INFO", "Avg of "+str(guard_cnt)+" guard measurement interval: "+str((guard_measure_time/guard_cnt)/3600.0))
+        if guard_cnt > 0:
+            plog("INFO", "Avg of "+str(guard_cnt)+" guard measurement interval: "+str((guard_measure_time/guard_cnt)/3600.0))
 
     tot_net_bw = 0
     for n in nodes.itervalues():
