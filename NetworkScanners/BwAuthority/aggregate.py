@@ -583,10 +583,10 @@ def main(argv):
 
             plog("INFO",
                  "Network true_filt_avg[%s]: %s" % (cl,
-                                                    str(true_filt_avg[cl]))))
+                                                    str(true_filt_avg[cl])))
             plog("INFO",
                  "Network pid_tgt_avg[%s]: %s" % (cl,
-                                                  str(pid_tgt_avg[cl]))))
+                                                  str(pid_tgt_avg[cl])))
             plog("INFO",
                  "Network true_circ_avg[%s]: %s" % (cl,
                                                     str(true_circ_avg[cl])))
