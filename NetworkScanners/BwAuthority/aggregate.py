@@ -658,7 +658,7 @@ def main(argv):
             plog("INFO",
                  "Avg of %d node update intervals: %0.2f" % (
                      str(node_cnt),
-                     str((node_measure_time / node_cnt) / 3600.0))
+                     str((node_measure_time / node_cnt) / 3600.0)))
 
         if guard_cnt > 0:
             plog("INFO",
@@ -718,16 +718,16 @@ def main(argv):
 
             # Don't accumulate too much amplification for fast nodes
             if cs_junk.use_desc_bw:
-              if n.pid_error_sum > cs_junk.pid_max and n.pid_error > 0:
-                plog("INFO", "Capping feedback for %s node %s=%s desc=%d ns=%d pid_error_sum=%f" %
-                    (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error_sum))
-                n.pid_error_sum = cs_junk.pid_max
+                if n.pid_error_sum > cs_junk.pid_max and n.pid_error > 0:
+                    plog("INFO", "Capping feedback for %s node %s=%s desc=%d ns=%d pid_error_sum=%f" %
+                        (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error_sum))
+                    n.pid_error_sum = cs_junk.pid_max
             else:
-              if float(n.ns_bw)/n.desc_bw > cs_junk.pid_max and n.pid_error > 0:
-                plog("INFO", "Capping feedback for %s node %s=%s desc=%d ns=%d pid_error=%f" %
-                    (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error))
-                n.pid_error = 0
-                n.pid_error_sum = 0
+                if float(n.ns_bw)/n.desc_bw > cs_junk.pid_max and n.pid_error > 0:
+                    plog("INFO", "Capping feedback for %s node %s=%s desc=%d ns=%d pid_error=%f" %
+                        (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error))
+                    n.pid_error = 0
+                    n.pid_error_sum = 0
 
             # Don't punish gimpy nodes too hard.
             if cs_junk.use_mercy:
