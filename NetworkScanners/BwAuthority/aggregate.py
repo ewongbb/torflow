@@ -410,6 +410,30 @@ def write_file_list(datadir):
     os.rename(datadir + "/bwfiles.new", datadir + "/bwfiles")
 
 
+def flag_in(check_flag, in_obj):
+    return check_flag in in_obj.flags
+
+
+def sum_lambda_nodes(in_n, in_fn, in_nodes):
+    if in_fn:
+        ret_val = sum(map(lambda in_n: in_fn(in_n.pid_error),
+                          in_nodes)) / len(in_nodes)
+    else:
+        ret_val = sum(map(lambda in_n: in_n.pid_error,
+                          in_nodes)) / len(in_nodes)
+    return ret_val
+
+
+def sum_lambda_nodes_iter(in_n, in_fn, in_nodes):
+    if in_fn:
+        ret_val = sum(map(lambda in_n: in_fn(in_n.pid_error),
+                          in_nodes.itervalues())) / len(in_nodes)
+    else:
+        ret_val = sum(map(lambda in_n: in_n.pid_error,
+                          in_nodes)) / len(in_nodes)
+    return ret_val
+
+
 def main(argv):
     TorUtil.read_config(argv[1]+"/scanner.1/bwauthority.cfg")
     TorUtil.logfile = "data/aggregate-debug.log"
@@ -679,7 +703,7 @@ def main(argv):
 
             if cs_junk.use_pid_tgt:
                 n.pid_error = (n.strm_bw - pid_tgt_avg[n.node_class()]) / \
-                               pid_tgt_avg[n.node_class()]
+                    pid_tgt_avg[n.node_class()]
                 # use filt_bw for pid_error < 0
                 if cs_junk.use_mercy:
                     if cs_junk.use_desc_bw:
@@ -691,14 +715,16 @@ def main(argv):
                         if n.desc_bw > n.ns_bw and n.pid_error < 0:
                             n.pid_error = \
                                 (n.filt_bw - pid_tgt_avg[n.node_class()]) / \
-                                 pid_tgt_avg[n.node_class()]
+                                pid_tgt_avg[n.node_class()]
             else:
-              if cs_junk.use_best_ratio and n.sbw_ratio > n.fbw_ratio:
-                  n.pid_error = (n.strm_bw - true_strm_avg[n.node_class()]) / \
-                                 true_strm_avg[n.node_class()]
-              else:
-                  n.pid_error = (n.filt_bw - true_filt_avg[n.node_class()]) / \
-                                 true_filt_avg[n.node_class()]
+                if cs_junk.use_best_ratio and n.sbw_ratio > n.fbw_ratio:
+                    n.pid_error = \
+                        (n.strm_bw - true_strm_avg[n.node_class()]) / \
+                        true_strm_avg[n.node_class()]
+                else:
+                    n.pid_error = \
+                        (n.filt_bw - true_filt_avg[n.node_class()]) / \
+                        true_filt_avg[n.node_class()]
 
             # XXX: Refactor the following 3 clauses out into it's own function,
             #      so we can log only in the event of update?
@@ -711,121 +737,145 @@ def main(argv):
                     circ_error = -n.circ_fail_rate  # ((1.0-fail) - 1.0)/1.0
                     if circ_error < 0 and circ_error < n.pid_error:
                         plog("INFO",
-                             "CPU overload for %s node %s=%s desc=%d ns=%d pid_error=%f circ_error=%f circ_fail=%f" %
-                          (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw,
-                           n.pid_error, circ_error, n.circ_fail_rate))
-                        n.pid_error = min(circ_error,n.pid_error)
+                             "CPU overload for %s node %s=%s desc=%d "
+                             "ns=%d pid_error=%f circ_error=%f "
+                             "circ_fail=%f" % (n.node_class(), n.nick,
+                                               n.idhex, n.desc_bw, n.ns_bw,
+                                               n.pid_error, circ_error,
+                                               n.circ_fail_rate))
+                        n.pid_error = min(circ_error, n.pid_error)
 
             # Don't accumulate too much amplification for fast nodes
             if cs_junk.use_desc_bw:
                 if n.pid_error_sum > cs_junk.pid_max and n.pid_error > 0:
-                    plog("INFO", "Capping feedback for %s node %s=%s desc=%d ns=%d pid_error_sum=%f" %
-                        (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error_sum))
+                    plog("INFO",
+                         "Capping feedback for %s node %s=%s desc=%d "
+                         "ns=%d pid_error_sum=%f" % (n.node_class(), n.nick,
+                                                     n.idhex, n.desc_bw,
+                                                     n.ns_bw, n.pid_error_sum))
                     n.pid_error_sum = cs_junk.pid_max
             else:
-                if float(n.ns_bw)/n.desc_bw > cs_junk.pid_max and n.pid_error > 0:
-                    plog("INFO", "Capping feedback for %s node %s=%s desc=%d ns=%d pid_error=%f" %
-                        (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error))
+                ns_bw_ratio = float(n.ns_bw) / n.desc_bw
+                if ns_bw_ratio > cs_junk.pid_max and n.pid_error > 0:
+                    plog("INFO",
+                         "Capping feedback for %s node %s=%s desc=%d "
+                         "ns=%d pid_error=%f" % (n.node_class(), n.nick,
+                                                 n.idhex, n.desc_bw,
+                                                 n.ns_bw, n.pid_error))
                     n.pid_error = 0
                     n.pid_error_sum = 0
 
             # Don't punish gimpy nodes too hard.
             if cs_junk.use_mercy:
-              if not cs_junk.use_desc_bw:
-                # If node was demoted in the past and we plan to demote it again,
-                # let's just not and say we did.
-                if n.desc_bw > n.ns_bw and n.pid_error < 0:
-                  plog("DEBUG", "Showing mercy for %s node %s=%s desc=%d ns=%d pid_error=%f" %
-                       (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error))
-                  n.use_bw = n.desc_bw
-              if n.pid_error_sum < 0 and n.pid_error < 0:
-                plog("DEBUG", "Showing mercy for %s node %s=%s desc=%d ns=%d pid_error_sum=%f" %
-                    (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw, n.pid_error_sum))
-                n.pid_error_sum = 0
+                if not cs_junk.use_desc_bw:
+                    # If node was demoted in the past and we plan to demote
+                    # it again, let's just not and say we did.
+                    if n.desc_bw > n.ns_bw and n.pid_error < 0:
+                        plog("DEBUG",
+                             "Showing mercy for %s node %s=%s desc=%d "
+                             "ns=%d pid_error=%f" % (n.node_class(), n.nick,
+                                                     n.idhex, n.desc_bw,
+                                                     n.ns_bw, n.pid_error))
+                        n.use_bw = n.desc_bw
+                if n.pid_error_sum < 0 and n.pid_error < 0:
+                    plog("DEBUG",
+                         "Showing mercy for %s node %s=%s desc=%d "
+                         "ns=%d pid_error_sum=%f" % (n.node_class(), n.nick,
+                                                     n.idhex, n.desc_bw,
+                                                     n.ns_bw,
+                                                     n.pid_error_sum))
+                    n.pid_error_sum = 0
 
             if n.idhex in prev_votes.vote_map:
-              # If there is a new sample, let's use it for all but guards
-              if n.measured_at > prev_votes.vote_map[n.idhex].measured_at:
+                # If there is a new sample, let's use it for all but guards
+                prev_vote_idhex = prev_votes.vote_map[n.idhex]
+                if n.measured_at > prev_vote_idhex.measured_at:
+                    # Nodes with the Guard flag will respond slowly to
+                    # feedback, so they should be sampled less often, and in
+                    # proportion to the appropriate Wgx weight.
+                    idhex_in_prev = n.idhex in prev_consensus
+                    guard_flag = chk_flag("Guard", prev_consensus[n.idhex])
+                    exit_flag = chk_flag("Exit", prev_consensus[n.idhex])
+                    if idhex_in_prev and guard_flag and not exit_flag:
+                        # Do full feedback if our previous vote > 2.5 weeks old
+                        m = n.measured_at - prev_vote_idhex.measured_at
+                        if m > cs_junk.guard_sample_rate:
+                            n.new_bw = n.get_pid_bw(prev_vote_idhex,
+                                                    cs_junk.K_p,
+                                                    cs_junk.K_i,
+                                                    cs_junk.K_d,
+                                                    cs_junk.K_i_decay)
+                        else:
+                            # Don't use feedback here, but we might as well
+                            # use our new measurement against the previous
+                            # vote.
+                            n.copy_vote(prev_vote_idhex)
 
-                # Nodes with the Guard flag will respond slowly to feedback,
-                # so they should be sampled less often, and in proportion to
-                # the appropriate Wgx weight.
-                if n.idhex in prev_consensus and \
-                  ("Guard" in prev_consensus[n.idhex].flags \
-                   and "Exit" not in prev_consensus[n.idhex].flags):
-                  # Do full feedback if our previous vote > 2.5 weeks old
-                  if n.idhex not in prev_votes.vote_map or \
-                      n.measured_at - prev_votes.vote_map[n.idhex].measured_at \
-                          > cs_junk.guard_sample_rate:
-                    n.new_bw = n.get_pid_bw(prev_votes.vote_map[n.idhex],
-                                            cs_junk.K_p,
-                                            cs_junk.K_i,
-                                            cs_junk.K_d,
-                                            cs_junk.K_i_decay)
-                  else:
-                    # Don't use feedback here, but we might as well use our
-                    # new measurement against the previous vote.
-                    n.copy_vote(prev_votes.vote_map[n.idhex])
+                            if cs_junk.use_desc_bw:
+                                n.new_bw = n.get_pid_bw(prev_vote_idhex,
+                                                        cs_junk.K_p,
+                                                        cs_junk.K_i,
+                                                        cs_junk.K_d,
+                                                        0.0, False)
+                            else:
+                                # Use previous vote's feedback bw
+                                # FIXME: compare to ns_bw or prev_vote bw?
+                                if cs_junk.use_mercy and n.desc_bw > n.ns_bw \
+                                   and n.pid_error < 0:
+                                    n.use_bw = n.desc_bw
+                                else:
+                                    n.use_bw = prev_vote_idhex.pid_bw
+                                n.new_bw = n.get_pid_bw(prev_vote_idhex,
+                                                        cs_junk.K_p,
+                                                        0.0, 0.0, 0.0, False)
 
-                    if cs_junk.use_desc_bw:
-                      n.new_bw = n.get_pid_bw(prev_votes.vote_map[n.idhex],
-                                          cs_junk.K_p,
-                                          cs_junk.K_i,
-                                          cs_junk.K_d,
-                                          0.0, False)
+                            # Reset the remaining vote data..
+                            n.measured_at = prev_vote_idhex.measured_at
+                            n.pid_error = prev_vote_idhex.pid_error
                     else:
-                      # Use previous vote's feedback bw
-                      # FIXME: compare to ns_bw or prev_vote bw?
-                      if cs_junk.use_mercy and n.desc_bw > n.ns_bw and n.pid_error < 0:
-                        n.use_bw = n.desc_bw
-                      else:
-                        n.use_bw = prev_votes.vote_map[n.idhex].pid_bw
-                      n.new_bw = n.get_pid_bw(prev_votes.vote_map[n.idhex],
-                                          cs_junk.K_p,
-                                          0.0,
-                                          0.0,
-                                          0.0, False)
+                        # Everyone else should be pretty instantenous to
+                        # respond.
+                        # Full feedback should be fine for them (we hope),
+                        # except for Guard+Exits, we want to dampen just a
+                        # little bit for them. Wgd seems a good choice, but
+                        # might not be exact.
+                        # We really want to magically combine Wgd and
+                        # something that represents the client migration rate
+                        # for Guards..
+                        # But who knows how to represent that and still KISS?
+                        p = prev_consensus
+                        n_in_p = n.idhex in p
+                        if n_in_p and chk_flags("Guard", p[n.idhex]) and \
+                           chk_flags("Exit", p[n.idhex]):
 
-                    # Reset the remaining vote data..
-                    n.measured_at = prev_votes.vote_map[n.idhex].measured_at
-                    n.pid_error = prev_votes.vote_map[n.idhex].pid_error
+                            # For section2-equivalent mode and/or use_mercy,
+                            # we should not use Wgd
+                            if n.use_bw == n.desc_bw:
+                                weight = 1.0
+                            else:
+                                weight = (1.0 - cs_junk.bw_weights["Wgd"])
+                                n.new_bw = n.get_pid_bw(
+                                    prev_vote_idhex,
+                                    cs_junk.K_p * weight,
+                                    cs_junk.K_i * weight,
+                                    cs_junk.K_d * weight,
+                                    cs_junk.K_i_decay)
+                        else:
+                            n.new_bw = n.get_pid_bw(prev_vote_idhex,
+                                                    cs_junk.K_p,
+                                                    cs_junk.K_i,
+                                                    cs_junk.K_d,
+                                                    cs_junk.K_i_decay)
                 else:
-                  # Everyone else should be pretty instantenous to respond.
-                  # Full feedback should be fine for them (we hope),
-                  # except for Guard+Exits, we want to dampen just a little
-                  # bit for them. Wgd seems a good choice, but might not be exact.
-                  # We really want to magically combine Wgd and something that
-                  # represents the client migration rate for Guards.. But who
-                  # knows how to represent that and still KISS?
-                  if n.idhex in prev_consensus and \
-                    ("Guard" in prev_consensus[n.idhex].flags \
-                     and "Exit" in prev_consensus[n.idhex].flags):
-                      # For section2-equivalent mode and/or use_mercy, we should
-                      # not use Wgd
-                      if n.use_bw == n.desc_bw:
-                          weight = 1.0
-                      else:
-                          weight = (1.0-cs_junk.bw_weights["Wgd"])
-                          n.new_bw = n.get_pid_bw(prev_votes.vote_map[n.idhex],
-                                          cs_junk.K_p*weight,
-                                          cs_junk.K_i*weight,
-                                          cs_junk.K_d*weight,
-                                          cs_junk.K_i_decay)
-                  else:
-                      n.new_bw = n.get_pid_bw(prev_votes.vote_map[n.idhex],
-                                      cs_junk.K_p,
-                                      cs_junk.K_i,
-                                      cs_junk.K_d,
-                                      cs_junk.K_i_decay)
-              else:
-                  # Reset values. Don't vote/sample this measurement round.
-                  n.revert_to_vote(prev_votes.vote_map[n.idhex])
-            else: # No prev vote, pure consensus feedback this round
-                n.new_bw = n.use_bw + cs_junk.K_p*n.use_bw*n.pid_error
+                    # Reset values. Don't vote/sample this measurement round.
+                    n.revert_to_vote(prev_vote_idhex)
+            else:  # No prev vote, pure consensus feedback this round
+                n.new_bw = n.use_bw + (cs_junk.K_p * n.use_bw * n.pid_error)
                 n.pid_error_sum = n.pid_error
                 n.pid_bw = n.new_bw
-                plog("DEBUG", "No prev vote for node "+n.nick+": Consensus feedback")
-        else: # No PID feedback
+                plog("DEBUG",
+                     "No prev vote for node %s: Consensus feedback" % n.nick)
+        else:  # No PID feedback
             # Choose the larger between sbw and fbw
             if n.sbw_ratio > n.fbw_ratio:
                 n.ratio = n.sbw_ratio
@@ -835,63 +885,81 @@ def main(argv):
             n.pid_error = 0
             n.pid_error_sum = 0
             n.new_bw = n.desc_bw*n.ratio
-            n.pid_bw = n.new_bw # for transition between pid/no-pid
+            n.pid_bw = n.new_bw  # for transition between pid/no-pid
 
         n.change = n.new_bw - n.desc_bw
 
         if n.idhex in prev_consensus:
-            if prev_consensus[n.idhex].bandwidth != None:
-                prev_consensus[n.idhex].measured = True
+            p_idhex = prev_consensus[n.idhex]
+            if p_idhex.bandwidth is not None:
+                p_idhex.measured = True
                 tot_net_bw += n.new_bw
-            if IGNORE_GUARDS \
-                 and ("Guard" in prev_consensus[n.idhex].flags and not "Exit" in \
-                        prev_consensus[n.idhex].flags):
-                plog("INFO", "Skipping voting for guard "+n.nick)
+            if (IGNORE_GUARDS and (chk_flags("Guard", p_idhex) and
+               not chk_flags("Exit", p_idhex))):
+
+                plog("INFO", "Skipping voting for guard %s" % n.nick)
                 n.ignore = True
-            elif "Authority" in prev_consensus[n.idhex].flags:
-                plog("DEBUG", "Skipping voting for authority "+n.nick)
+            elif chk_flags("Authority", p_idhex):
+                plog("DEBUG", "Skipping voting for authority %s" % n.nick)
                 n.ignore = True
 
     # Go through the list and cap them to NODE_CAP
     for n in nodes.itervalues():
         if n.new_bw >= 0x7fffffff:
-            plog("WARN", "Bandwidth of "+n.node_class()+" node "+n.nick+"="+n.idhex+" exceeded maxint32: "+str(n.new_bw))
+            plog("WARN",
+                 "Bandwidth of %s node %s=%s exceeded "
+                 "maxint32: %s" % (n.node_class(), n.nick, n.idhex,
+                                   str(n.new_bw)))
             n.new_bw = 0x7fffffff
-        if cs_junk.T_i > 0 and cs_junk.T_i_decay > 0 \
-           and math.fabs(n.pid_error_sum) > \
-               math.fabs(2*cs_junk.T_i*n.pid_error/cs_junk.T_i_decay):
-            plog("NOTICE", "Large pid_error_sum for node "+n.idhex+"="+n.nick+": "+
-                         str(n.pid_error_sum)+" vs "+str(n.pid_error))
+
+        calc_val = 2 * cs_junk.T_i * n.pid_error / cs_junk.T_i_decay
+        if (cs_junk.T_i > 0 and cs_junk.T_i_decay > 0 and
+           math.fabs(n.pid_error_sum) > math.fabs(calc_val)):
+            plog("NOTICE",
+                 "Large pid_error_sum for node %s=%s: %s vs %s" % (
+                     n.idhex, n.nick, str(n.pid_error_sum),
+                     str(n.pid_error)))
         if n.new_bw > tot_net_bw*NODE_CAP:
-            plog("INFO", "Clipping extremely fast "+n.node_class()+" node "+n.idhex+"="+n.nick+
-                 " at "+str(100*NODE_CAP)+"% of network capacity ("+
-                 str(n.new_bw)+"->"+str(int(tot_net_bw*NODE_CAP))+") "+
-                 " pid_error="+str(n.pid_error)+
-                 " pid_error_sum="+str(n.pid_error_sum))
-            n.new_bw = int(tot_net_bw*NODE_CAP)
-            n.pid_error_sum = 0 # Don't let unused error accumulate...
+            plog("INFO",
+                 "Clipping extremely fast %s node %s=%s at %s% of "
+                 "network capacity (%s->%s) pid_error=%s "
+                 "pid_error_sum=%s" % (n.node_class(), n.idhex, n.nick,
+                                       str(100 * NODE_CAP),
+                                       str(n.new_bw),
+                                       str(int(tot_net_bw * NODE_CAP)),
+                                       str(n.pid_error),
+                                       str(n.pid_error_sum)))
+            n.new_bw = int(tot_net_bw * NODE_CAP)
+            n.pid_error_sum = 0  # Don't let unused error accumulate...
+
         if n.new_bw <= 0:
             if n.idhex in prev_consensus:
-                plog("INFO", n.node_class()+" node "+n.idhex+"="+n.nick+" has bandwidth <= 0: "+str(n.new_bw))
+                plog("INFO",
+                     "%s node %s=%s has bandwidth <-0: %s" % (n.node_class(),
+                                                              n.idhex,
+                                                              n.nick,
+                                                              str(n.new_bw)))
             else:
-                plog("INFO", "New node "+n.idhex+"="+n.nick+" has bandwidth < 0: "+str(n.new_bw))
+                plog("INFO",
+                     "New node %s=%s has bandwidth < 0: %s" % (n.idhex, n.nick,
+                                                               str(n.new_bw)))
             n.new_bw = 1
 
     oldest_measured = min(map(lambda n: n.measured_at,
-               filter(lambda n: n.idhex in prev_consensus,
-                         nodes.itervalues())))
-    plog("INFO", "Oldest measured node: "+time.ctime(oldest_measured))
+                          filter(lambda n: n.idhex in prev_consensus,
+                                 nodes.itervalues())))
+    plog("INFO", "Oldest measured node: " + time.ctime(oldest_measured))
 
     oldest_updated = min(map(lambda n: n.updated_at,
-               filter(lambda n: n.idhex in prev_consensus,
-                         nodes.itervalues())))
-    plog("INFO", "Oldest updated node: "+time.ctime(oldest_updated))
+                             filter(lambda n: n.idhex in prev_consensus,
+                                    nodes.itervalues())))
+    plog("INFO", "Oldest updated node: " + time.ctime(oldest_updated))
 
     missed_nodes = 0.0
     missed_bw = 0
     tot_bw = 0
     for n in prev_consensus.itervalues():
-        if n.bandwidth != None:
+        if n.bandwidth is not None:
             tot_bw += n.bandwidth
         if not n.measured:
             if "Fast" in n.flags and "Running" in n.flags:
@@ -900,77 +968,112 @@ def main(argv):
                 except TorCtl.ErrorReply:
                     r = None
                 if r and not r.down and r.bw > 0:
-                    #if time.mktime(r.published.utctimetuple()) - r.uptime \
+                    # if time.mktime(r.published.utctimetuple()) - r.uptime \
                     #       < oldest_timestamp:
                     missed_nodes += 1.0
-                    if n.bandwidth == None:
+                    if n.bandwidth is None:
                         missed_bw += r.bw
                     else:
                         missed_bw += n.bandwidth
                     # We still tend to miss about 80 nodes even with these
                     # checks.. Possibly going in and out of hibernation?
-                    plog("DEBUG", "Didn't measure "+n.idhex+"="+n.nickname+" at "+str(round((100.0*n.list_rank)/max_rank,1))+" "+str(n.bandwidth))
+                    plog("DEBUG",
+                         "Didn't measure %s=%s at %s %s" % (
+                             n.idhex, n.nick,
+                             str(round((100.0 * n.list_rank) / max_rank, 1)),
+                             str(n.bandwidth)))
 
-    measured_pct = round(100.0*len(nodes)/(len(nodes)+missed_nodes),1)
-    measured_bw_pct = 100.0 - round((100.0*missed_bw)/tot_bw,1)
+    measured_pct = round(100.0 * len(nodes) / (len(nodes) + missed_nodes), 1)
+    measured_bw_pct = 100.0 - round((100.0 * missed_bw) / tot_bw, 1)
     if measured_pct < MIN_REPORT:
-        plog("NOTICE", "Did not measure "+str(MIN_REPORT)+"% of nodes yet ("+str(measured_pct)+"%)")
+        plog("NOTICE",
+             "Did not measure %s% of nodes yet (%s%)" % (str(MIN_REPORT),
+                                                         str(measured_pct)))
         sys.exit(1)
 
     # Notification hack because #2286/#4359 is annoying arma
     if measured_bw_pct < 75:
         plog("WARN",
-             "Only measured %f of the previous consensus bandwidth despite measuring %f of the nodes" %
-             (measured_bw_pct, measured_pct))
+             "Only measured %f of the previous consensus bandwidth "
+             "despite measuring %f of the nodes" % (measured_bw_pct,
+                                                    measured_pct))
     elif measured_bw_pct < 95:
         plog("NOTICE",
-             "Only measured %f of the previous consensus bandwidth despite measuring %f of the nodes" %
-             (measured_bw_pct, measured_pct))
+             "Only measured %f of the previous consensus bandwidth "
+             "despite measuring %f of the nodes" % (measured_bw_pct,
+                                                    measured_pct))
 
     for cl in ["Guard+Exit", "Guard", "Exit", "Middle"]:
         c_nodes = filter(lambda n: n.node_class() == cl, nodes.itervalues())
         nc_nodes = filter(lambda n: n.pid_error < 0, c_nodes)
         pc_nodes = filter(lambda n: n.pid_error > 0, c_nodes)
         if len(c_nodes) > 0:
-            plog("INFO", "Avg "+cl+"  pid_error="+str(sum(map(lambda n: n.pid_error, c_nodes))/len(c_nodes)))
-            plog("INFO", "Avg "+cl+" |pid_error|="+str(sum(map(lambda n: abs(n.pid_error), c_nodes))/len(c_nodes)))
+            plog("INFO",
+                 "Avg %s  pid_error=%s" % (
+                     cl, str(sum_lambda_nodes(n, None, c_nodes))))
+            plog("INFO",
+                 "Avg %s |pid_error|=%s" % (
+                     cl, str(sum_lambda_nodes(n, abs, c_nodes))))
         if len(pc_nodes) > 0:
-            plog("INFO", "Avg "+cl+" +pid_error=+"+str(sum(map(lambda n: n.pid_error, pc_nodes))/len(pc_nodes)))
+            plog("INFO",
+                 "Avg %s +pid_error=+%s" % (
+                     cl, str(sum_lambda_nodes(n, None, pc_nodes))))
         if len(nc_nodes) > 0:
-            plog("INFO", "Avg "+cl+" -pid_error="+str(sum(map(lambda n: n.pid_error, nc_nodes))/len(nc_nodes)))
+            plog("INFO",
+                 "Avg %s -pid_error=%s" % (
+                     cl, str(sum_lambda_nodes(n, None, nc_nodes))))
 
     n_nodes = filter(lambda n: n.pid_error < 0, nodes.itervalues())
     p_nodes = filter(lambda n: n.pid_error > 0, nodes.itervalues())
-    plog("INFO", "Avg network  pid_error="+str(sum(map(lambda n: n.pid_error, nodes.itervalues()))/len(nodes)))
-    plog("INFO", "Avg network |pid_error|="+str(sum(map(lambda n: abs(n.pid_error), nodes.itervalues()))/len(nodes)))
-    plog("INFO", "Avg network +pid_error=+"+str(sum(map(lambda n: n.pid_error, p_nodes))/len(p_nodes)))
-    plog("INFO", "Avg network -pid_error="+str(sum(map(lambda n: n.pid_error, n_nodes))/len(n_nodes)))
-
+    plog("INFO",
+         "Avg. Network  pid_error=%s" % str(sum_lamda_nodes_iter(n, None,
+                                                                 nodes)))
+    plog("INFO",
+         "Avg. Network |pid_error|=%s" % str(sum_lamda_nodes_iter(n, abs,
+                                                                  nodes)))
+    plog("INFO",
+         "Avg. Network +pid_error=+%s" % str(sum_lamda_nodes(n, None,
+                                                             p_nodes)))
+    plog("INFO",
+         "Avg. Network -pid_error=%s" % str(sum_lamda_nodes(n, None,
+                                                            n_nodes)))
 
     plog("NOTICE",
-         "Measured "+str(measured_pct) +"% of all tor nodes ("
-         +str(measured_bw_pct)+"% of previous consensus bw).")
+         "Measured %s% of all tor nodes "
+         "(%s% of previous consensus bw)." % (str(measured_pct),
+                                              str(measured_bw_pct)))
 
     n_print = nodes.values()
-    n_print.sort(lambda x,y: int(y.pid_error*1000) - int(x.pid_error*1000))
+    n_print.sort(lambda x, y:
+                 int(y.pid_error * 1000) - int(x.pid_error * 1000))
 
     scan_age = 0
     for scanner in scanner_timestamps.iterkeys():
-        this_scan_age = int(round(scanner_timestamps[scanner],0))
+        this_scan_age = int(round(scanner_timestamps[scanner], 0))
         scan_age = scan_age if scan_age > this_scan_age else this_scan_age
         if this_scan_age < time.time() - MAX_SCAN_AGE:
-            plog("WARN", "Bandwidth scanner "+scanner+" stale. Possible dead bwauthority.py. Timestamp: "+time.ctime(this_scan_age))
+            plog("WARN",
+                 "Bandwidth scanner %s is stale. Possible dead "
+                 "bwauthority.py. TimeStamp: %s" % (scanner,
+                                                    time.ctime(this_scan_age)))
 
     out = file(argv[-1], "w")
-    out.write(str(scan_age)+"\n")
+    out.write(str(scan_age) + "\n")
 
     # FIXME: Split out debugging data
     for n in n_print:
         if not n.ignore:
             # Turns out str() is more accurate than %lf
-            out.write("node_id="+n.idhex+" bw="+str(base10_round(n.new_bw))+" nick="+n.nick+ " measured_at="+str(int(n.measured_at))+" updated_at="+str(int(n.updated_at))+" pid_error="+str(n.pid_error)+" pid_error_sum="+str(n.pid_error_sum)+" pid_bw="+str(int(n.pid_bw))+" pid_delta="+str(n.pid_delta)+" circ_fail="+str(n.circ_fail_rate)+" scanner="+str(n.scanner)+"\n")
+            out.write(
+                "node_id=%s bw=%s nick=%s measured_at=%d updated_at=%d"
+                " pid_error=%s pid_error_sum=%s pid_w=%d pid_delta=%s"
+                " circ_fail=%s scanner=%s\n" % (
+                    n.idhex, str(base10_round(n.new_bw)), n.nick,
+                    int(n.measured_at), int(n.updated_at),
+                    str(n.pid_error), str(n.pid_error_sum),
+                    int(n.pid_bw), str(n.pid_delta), str(n.circ_fail_rate),
+                    str(n.scanner)))
     out.close()
-
     write_file_list(argv[1])
 
 
