@@ -16,8 +16,6 @@ import sys
 import urllib2
 import os
 import traceback
-import copy
-import shutil
 import threading
 import ConfigParser
 import sqlalchemy
@@ -123,11 +121,11 @@ def choose_url(percentile):
         write_file_list('./data')
     lines = []
     valid = False
-    for l in f.readlines():
-        if l == ".\n":
+    for ln in f.readlines():
+        if ln == ".\n":
             valid = True
             break
-        pair = l.split()
+        pair = ln.split()
         lines.append((int(pair[0]), pair[1]))
 
     if not valid:
@@ -147,7 +145,7 @@ def http_request(address):
     request = urllib2.Request(address)
     try:
         context = ssl._create_unverified_context()
-    except:
+    except Exception, e:
         context = None
     request.add_header("User-Agent", user_agent)
 
