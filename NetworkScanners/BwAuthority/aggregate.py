@@ -662,8 +662,9 @@ def main(argv):
 
         if guard_cnt > 0:
             plog("INFO",
-            "Avg of %d guard measurement interval: %0.2f" % (
-                str(guard_cnt), (guard_measure_time / guard_cnt) / 3600.0))
+                 "Avg of %d guard measurement interval: %0.2f" % (
+                     str(guard_cnt),
+                     (guard_measure_time / guard_cnt) / 3600.0))
 
     tot_net_bw = 0
     for n in nodes.itervalues():
