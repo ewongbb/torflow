@@ -668,51 +668,53 @@ def main(argv):
 
     tot_net_bw = 0
     for n in nodes.itervalues():
-        n.fbw_ratio = n.filt_bw/true_filt_avg[n.node_class()]
-        n.sbw_ratio = n.strm_bw/true_strm_avg[n.node_class()]
+        n.fbw_ratio = n.filt_bw / true_filt_avg[n.node_class()]
+        n.sbw_ratio = n.strm_bw / true_strm_avg[n.node_class()]
 
         if cs_junk.bwauth_pid_control:
             if cs_junk.use_desc_bw:
-              n.use_bw = n.desc_bw
+                n.use_bw = n.desc_bw
             else:
-              n.use_bw = n.ns_bw
+                n.use_bw = n.ns_bw
 
             if cs_junk.use_pid_tgt:
-                n.pid_error = (n.strm_bw - pid_tgt_avg[n.node_class()]) \
-                                 / pid_tgt_avg[n.node_class()]
+                n.pid_error = (n.strm_bw - pid_tgt_avg[n.node_class()]) / \
+                               pid_tgt_avg[n.node_class()]
                 # use filt_bw for pid_error < 0
                 if cs_junk.use_mercy:
-                  if cs_junk.use_desc_bw:
-                    if n.pid_error_sum < 0 and n.pid_error < 0:
-                      n.pid_error = (n.filt_bw - pid_tgt_avg[n.node_class()]) \
-                                 / pid_tgt_avg[n.node_class()]
-                  else:
-                    if n.desc_bw > n.ns_bw and n.pid_error < 0:
-                      n.pid_error = (n.filt_bw - pid_tgt_avg[n.node_class()]) \
-                                 / pid_tgt_avg[n.node_class()]
+                    if cs_junk.use_desc_bw:
+                        if n.pid_error_sum < 0 and n.pid_error < 0:
+                            n.pid_error = \
+                                (n.filt_bw - pid_tgt_avg[n.node_class()]) / \
+                                pid_tgt_avg[n.node_class()]
+                    else:
+                        if n.desc_bw > n.ns_bw and n.pid_error < 0:
+                            n.pid_error = \
+                                (n.filt_bw - pid_tgt_avg[n.node_class()]) / \
+                                 pid_tgt_avg[n.node_class()]
             else:
               if cs_junk.use_best_ratio and n.sbw_ratio > n.fbw_ratio:
-                n.pid_error = (n.strm_bw - true_strm_avg[n.node_class()]) \
-                                 / true_strm_avg[n.node_class()]
+                  n.pid_error = (n.strm_bw - true_strm_avg[n.node_class()]) / \
+                                 true_strm_avg[n.node_class()]
               else:
-                n.pid_error = (n.filt_bw - true_filt_avg[n.node_class()]) \
-                                 / true_filt_avg[n.node_class()]
+                  n.pid_error = (n.filt_bw - true_filt_avg[n.node_class()]) / \
+                                 true_filt_avg[n.node_class()]
 
-            # XXX: Refactor the following 3 clauses out into it's own function, so we can log
-            # only in the event of update?
+            # XXX: Refactor the following 3 clauses out into it's own function,
+            #      so we can log only in the event of update?
             # Penalize nodes for circ failure rate
             if cs_junk.use_circ_fails:
-              # Compute circ_error relative to 1.0 (full success), but only
-              # apply it if it is both below the network avg and worse than
-              # the pid_error
-              if (1.0-n.circ_fail_rate) < true_circ_avg[n.node_class()]:
-                circ_error = -n.circ_fail_rate # ((1.0-fail) - 1.0)/1.0
-                if circ_error < 0 and circ_error < n.pid_error:
-                  plog("INFO",
-                    "CPU overload for %s node %s=%s desc=%d ns=%d pid_error=%f circ_error=%f circ_fail=%f" %
-                    (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw,
-                     n.pid_error, circ_error, n.circ_fail_rate))
-                  n.pid_error = min(circ_error,n.pid_error)
+                # Compute circ_error relative to 1.0 (full success), but only
+                # apply it if it is both below the network avg and worse than
+                # the pid_error
+                if (1.0 - n.circ_fail_rate) < true_circ_avg[n.node_class()]:
+                    circ_error = -n.circ_fail_rate  # ((1.0-fail) - 1.0)/1.0
+                    if circ_error < 0 and circ_error < n.pid_error:
+                        plog("INFO",
+                             "CPU overload for %s node %s=%s desc=%d ns=%d pid_error=%f circ_error=%f circ_fail=%f" %
+                          (n.node_class(), n.nick, n.idhex, n.desc_bw, n.ns_bw,
+                           n.pid_error, circ_error, n.circ_fail_rate))
+                        n.pid_error = min(circ_error,n.pid_error)
 
             # Don't accumulate too much amplification for fast nodes
             if cs_junk.use_desc_bw:
