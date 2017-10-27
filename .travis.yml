@@ -1,0 +1,32 @@
+# Travis CI configuration file
+# http://about.travis-ci.org/docs/
+
+language: python
+
+python:
+    - "2.7"
+    - "3.5"
+    - "3.6"
+
+# Dependencies installation commands
+install:
+  - pip install -U pip
+  - pip install pep8
+  - pip install flake8
+
+# Tests running commands
+script:
+  - pep8 ./NetworkScanners/BwAuthority
+  - flake8 ./NetworkScanners/BwAuthority
+
+notifications:
+  email: false
+
+after_script:
+  # List installed packages along with their versions.
+  - "pip list"
+
+sudo: false
+
+git:
+  depth: 300
