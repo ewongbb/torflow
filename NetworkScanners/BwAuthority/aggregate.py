@@ -464,67 +464,70 @@ def main(argv):
     # That way we can ensure all the scanners continue running.
     scanner_timestamps = {}
     for da in argv[1:-1]:
-      # First, create a list of the most recent files in the
-      # scan dirs that are recent enough
-      for root, dirs, f in os.walk(da):
-        for ds in dirs:
-          if re.match("^scanner.[\d+]$", ds):
-            newest_timestamp = 0
-            for sr, sd, files in os.walk(da+"/"+ds+"/scan-data"):
-              for f in files:
-                if re.search("^bws-[\S]+-done-", f):
-                  fp = file(sr+"/"+f, "r")
-                  slicenum = sr+"/"+fp.readline()
-                  timestamp = float(fp.readline())
-                  fp.close()
-                  # old measurements are probably
-                  # better than no measurements. We may not
-                  # measure hibernating routers for days.
-                  # This filter is just to remove REALLY old files
-                  if time.time() - timestamp > MAX_AGE:
-                    sqlf = f.replace("bws-", "sql-")
-                    plog("INFO", "Removing old file "+f+" and "+sqlf)
-                    os.remove(sr+"/"+f)
-                    try:
-                      os.remove(sr+"/"+sqlf)
-                    except:
-                      pass # In some cases the sql file may not exist
-                    continue
-                  if timestamp > newest_timestamp:
-                    newest_timestamp = timestamp
-                  bw_files.append((slicenum, timestamp, sr+"/"+f))
-            scanner_timestamps[ds] = newest_timestamp
+        # First, create a list of the most recent files in the
+        # scan dirs that are recent enough
+        for root, dirs, f in os.walk(da):
+            for ds in dirs:
+                if re.match("^scanner.[\d+]$", ds):
+                    newest_timestamp = 0
+                    for sr, sd, files in os.walk("%s/%s/scan-data" % (da, ds)):
+                        for f in files:
+                            if re.search("^bws-[\S]+-done-", f):
+                                fp = file("%s/%s" % (sr, f), "r")
+                                slicenum = "%s/%s" % (sr, fp.readline())
+                                timestamp = float(fp.readline())
+                                fp.close()
+                                # old measurements are probably
+                                # better than no measurements. We may not
+                                # measure hibernating routers for days.
+                                # This filter is just to remove REALLY old files
+                                if time.time() - timestamp > MAX_AGE:
+                                    sqlf = f.replace("bws-", "sql-")
+                                    plog("INFO",
+                                         "Removing old file " + f +
+                                         " and " + sqlf)
+                                    os.remove("%s/%s" % (sr, f))
+                                    try:
+                                        os.remove("%s/%s" % (sr, sqlf))
+                                    except:
+                                        pass # In some cases the sql file may not exist
+                                    continue
+                                if timestamp > newest_timestamp:
+                                    newest_timestamp = timestamp
+                                bw_files.append((slicenum, timestamp,
+                                                 "%s/%s" % (sr, f)))
+                    scanner_timestamps[ds] = newest_timestamp
 
     # Need to only use most recent slice-file for each node..
-    for (s,t,f) in bw_files:
-      fp = file(f, "r")
-      fp.readline() # slicenum
-      fp.readline() # timestamp
-      for l in fp.readlines():
-        try:
-          line = Line(l,s,t,f.replace(argv[1], ""))
-          if line.idhex not in nodes:
-            n = Node()
-            nodes[line.idhex] = n
-          else:
-            n = nodes[line.idhex]
-          n.add_line(line)
-        except ValueError,e:
-          plog("NOTICE", "Conversion error "+str(e)+" at "+l)
-        except AttributeError, e:
-          plog("NOTICE", "Slice file format error "+str(e)+" at "+l)
-        except Exception, e:
-          plog("WARN", "Unknown slice parse error "+str(e)+" at "+l)
-          traceback.print_exc()
-      fp.close()
+    for (s, t, f) in bw_files:
+        fp = file(f, "r")
+        fp.readline() # slicenum
+        fp.readline() # timestamp
+        for l in fp.readlines():
+            try:
+                line = Line(l, s, t, f.replace(argv[1], ""))
+                if line.idhex not in nodes:
+                    n = Node()
+                    nodes[line.idhex] = n
+                else:
+                    n = nodes[line.idhex]
+                n.add_line(line)
+            except ValueError,e:
+                plog("NOTICE", "Conversion error %s at %s" % (str(e), l))
+            except AttributeError, e:
+                plog("NOTICE", "Slice file format error %s at %s" % (str(e), l))
+            except Exception, e:
+                plog("WARN", "Unknown slice parse error %s at %s" % (str(e), l))
+                traceback.print_exc()
+        fp.close()
 
     if len(nodes) == 0:
-      plog("NOTICE", "No scan results yet.")
-      sys.exit(1)
+        plog("NOTICE", "No scan results yet.")
+        sys.exit(1)
 
     for idhex in nodes.iterkeys():
-      if idhex in prev_consensus:
-        nodes[idhex].flags = prev_consensus[idhex].flags
+          if idhex in prev_consensus:
+              nodes[idhex].flags = prev_consensus[idhex].flags
 
     true_filt_avg = {}
     pid_tgt_avg = {}
