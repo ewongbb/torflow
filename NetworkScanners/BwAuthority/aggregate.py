@@ -454,10 +454,10 @@ def main(argv):
         prev_consensus["$%s" % n.idhex] = n
 
     if not got_ns_bw:
-      # Sometimes the consensus lacks a descriptor. In that case,
-      # it will skip outputting 
-      plog("ERROR", "Your Tor is not providing NS w bandwidths!")
-      sys.exit(0)
+        # Sometimes the consensus lacks a descriptor. In that case,
+        # it will skip outputting 
+        plog("ERROR", "Your Tor is not providing NS w bandwidths!")
+        sys.exit(0)
 
     # Take the most recent timestamp from each scanner 
     # and use the oldest for the timestamp of the result.
