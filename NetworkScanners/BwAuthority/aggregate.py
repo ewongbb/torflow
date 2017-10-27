@@ -199,12 +199,13 @@ class Line:
         try:
             self.circ_fail_rate = float(
                 re.search("[\s]*circ_fail_rate=([\S]+)[\s]*", line).group(1))
-        except:
+        except Exception, e:
             self.circ_fail_rate = 0
+
         try:
             self.strm_fail_rate = float(
                 re.search("[\s]*strm_fail_rate=([\S]+)[\s]*", line).group(1))
-        except:
+        except Exception, e:
             self.strm_fail_rate = 0
 
 
@@ -230,7 +231,7 @@ class Vote:
                 re.search("[\s]*pid_delta=([\S]+)[\s]*", line).group(1))
             self.pid_bw = float(
                 re.search("[\s]*pid_bw=([\S]+)[\s]*", line).group(1))
-        except:
+        except Exception, e:
             plog("NOTICE", "No previous PID data.")
             self.pid_bw = self.bw
             self.pid_error = 0
@@ -239,7 +240,7 @@ class Vote:
         try:
             self.updated_at = int(
                 re.search("[\s]*updated_at=([\S]+)[\s]*", line).group(1))
-        except:
+        except Exception, e:
             plog("INFO",
                  "No updated_at field for " + self.nick + "=" + self.idhex)
             self.updated_at = self.measured_at
@@ -352,7 +353,7 @@ class ConsensusJunk:
             for b in bw_weights:
                 pair = b.split("=")
                 self.bw_weights[pair[0]] = int(pair[1])/10000.0
-        except:
+        except Exception, e:
             plog("WARN", "No bandwidth weights in consensus!")
             self.bw_weights["Wgd"] = 0
             self.bw_weights["Wgg"] = 1.0
@@ -514,7 +515,7 @@ def main(argv):
                                     os.remove("%s/%s" % (sr, f))
                                     try:
                                         os.remove("%s/%s" % (sr, sqlf))
-                                    except:
+                                    except Exception, e:
                                         # In some cases the sql file may
                                         # not exist
                                         pass

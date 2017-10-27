@@ -12,10 +12,11 @@ def main():
     bw = bw_orig = 1024
     r = 2.5
     for i in xrange(30):
-        print bw
+        print(bw)
         bw = ns_update(alpha, bw, r)
         if r < 1 and bw < bw_orig * r:
-            print i
+            print(i)
             break
+
 
 main()
