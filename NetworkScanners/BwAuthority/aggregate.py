@@ -10,8 +10,6 @@ import traceback
 sys.path.append("../../")
 from TorCtl.TorUtil import plog
 from TorCtl import TorCtl, TorUtil
-from TorCtl.PathSupport import VersionRangeRestriction, NodeRestrictionList, \
-    NotNodeRestriction
 
 bw_files = []
 nodes = {}
@@ -411,7 +409,7 @@ def write_file_list(datadir):
     os.rename(datadir + "/bwfiles.new", datadir + "/bwfiles")
 
 
-def flag_in(check_flag, in_obj):
+def is_flag_in(check_flag, in_obj):
     return check_flag in in_obj.flags
 
 
@@ -664,7 +662,7 @@ def main(argv):
         node_measure_time = 0
         for n in nodes.itervalues():
             if n.idhex in prev_votes.vote_map and n.idhex in prev_consensus:
-                prev_vmap = prev_votes.vote_map[n.idhex]
+                prev_map = prev_votes.vote_map[n.idhex]
                 prev_flags = prev_consensus[n.idhex].flags
                 if "Guard" in prev_flags and "Exit" not in prev_flags:
                     if n.measured_at != prev_map.measured_at:
@@ -795,8 +793,8 @@ def main(argv):
                     # feedback, so they should be sampled less often, and in
                     # proportion to the appropriate Wgx weight.
                     idhex_in_prev = n.idhex in prev_consensus
-                    guard_flag = chk_flag("Guard", prev_consensus[n.idhex])
-                    exit_flag = chk_flag("Exit", prev_consensus[n.idhex])
+                    guard_flag = is_flag_in("Guard", prev_consensus[n.idhex])
+                    exit_flag = is_flag_in("Exit", prev_consensus[n.idhex])
                     if idhex_in_prev and guard_flag and not exit_flag:
                         # Do full feedback if our previous vote > 2.5 weeks old
                         m = n.measured_at - prev_vote_idhex.measured_at
@@ -846,8 +844,8 @@ def main(argv):
                         # But who knows how to represent that and still KISS?
                         p = prev_consensus
                         n_in_p = n.idhex in p
-                        if n_in_p and chk_flags("Guard", p[n.idhex]) and \
-                           chk_flags("Exit", p[n.idhex]):
+                        if n_in_p and is_flag_in("Guard", p[n.idhex]) and \
+                           is_flag_in("Exit", p[n.idhex]):
 
                             # For section2-equivalent mode and/or use_mercy,
                             # we should not use Wgd
@@ -895,12 +893,12 @@ def main(argv):
             if p_idhex.bandwidth is not None:
                 p_idhex.measured = True
                 tot_net_bw += n.new_bw
-            if (IGNORE_GUARDS and (chk_flags("Guard", p_idhex) and
-               not chk_flags("Exit", p_idhex))):
+            if (IGNORE_GUARDS and (is_flag_in("Guard", p_idhex) and
+               not is_flag_in("Exit", p_idhex))):
 
                 plog("INFO", "Skipping voting for guard %s" % n.nick)
                 n.ignore = True
-            elif chk_flags("Authority", p_idhex):
+            elif is_flag_in("Authority", p_idhex):
                 plog("DEBUG", "Skipping voting for authority %s" % n.nick)
                 n.ignore = True
 
@@ -920,7 +918,7 @@ def main(argv):
                  "Large pid_error_sum for node %s=%s: %s vs %s" % (
                      n.idhex, n.nick, str(n.pid_error_sum),
                      str(n.pid_error)))
-        if n.new_bw > tot_net_bw*NODE_CAP:
+        if n.new_bw > tot_net_bw * NODE_CAP:
             plog("INFO",
                  "Clipping extremely fast %s node %s=%s at %s% of "
                  "network capacity (%s->%s) pid_error=%s "
