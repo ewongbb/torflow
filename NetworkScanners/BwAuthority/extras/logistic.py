@@ -25,7 +25,7 @@ def estimate(upgrade_table):
 
     x2_ = sum(map(lambda x: x * x, y.iterkeys())) / len(y)
 
-    s = (xy__ - x_ * y_)/(x2_ - x_ * x_)
+    s = (xy__ - x_ * y_) / (x2_ - x_ * x_)
 
     u = y_ - s * x_
 

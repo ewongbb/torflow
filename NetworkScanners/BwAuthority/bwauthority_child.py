@@ -233,7 +233,7 @@ class BwScanHandler(ScanSupport.SQLScanHandler):
                                  selmgr.path_selector.exit_gen.rstr_routers))
                     # If more than 35% of the 2-hop paths failed, keep going to
                     # get more measurements
-                    if num_streams < 0.65*((num_routers*count)/2.0):
+                    if num_streams < 0.65 * ((num_routers * count) / 2.0):
                         plog("WARN",
                              "Not enough streams yet. " + str(num_streams) +
                              " < " + str(0.65 * (num_routers * count / 2.0)))

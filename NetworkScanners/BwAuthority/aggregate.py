@@ -486,7 +486,7 @@ def main(argv):
     # and use the oldest for the timestamp of the result.
     # That way we can ensure all the scanners continue running.
     scanner_timestamps = {}
-    for da in argv[1 : -1]:
+    for da in argv[1:-1]:
         # First, create a list of the most recent files in the
         # scan dirs that are recent enough
         for root, dirs, f in os.walk(da):
@@ -883,7 +883,7 @@ def main(argv):
 
             n.pid_error = 0
             n.pid_error_sum = 0
-            n.new_bw = n.desc_bw*n.ratio
+            n.new_bw = n.desc_bw * n.ratio
             n.pid_bw = n.new_bw  # for transition between pid/no-pid
 
         n.change = n.new_bw - n.desc_bw
@@ -1084,7 +1084,7 @@ if __name__ == "__main__":
         plog("WARN", "Socket error. Are the scanning Tors running?")
         sys.exit(1)
     except Exception, e:
-        plog("ERROR", "Exception during aggregate: "+str(e))
+        plog("ERROR", "Exception during aggregate: " + str(e))
         traceback.print_exc()
         sys.exit(1)
     sys.exit(0)
