@@ -1079,11 +1079,11 @@ def main(argv):
 if __name__ == "__main__":
     try:
         main(sys.argv)
-    except socket.error, e:
+    except socket.error as e:
         traceback.print_exc()
         plog("WARN", "Socket error. Are the scanning Tors running?")
         sys.exit(1)
-    except Exception, e:
+    except Exception as e:
         plog("ERROR", "Exception during aggregate: " + str(e))
         traceback.print_exc()
         sys.exit(1)

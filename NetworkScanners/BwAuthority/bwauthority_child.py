@@ -531,7 +531,7 @@ def setup_handler(out_dir, cookie_file):
 
 
 def usage(argv):
-    print "Usage: " + argv[0] + " <configfile>"
+    print("Usage: %s <configfile>" % argv[0])
     return
 
 

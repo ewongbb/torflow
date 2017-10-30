@@ -77,8 +77,8 @@ while read_line:
 (u_ip, s_ip) = logistic.estimate(upgrade_ip_table)
 (u_req, s_req) = logistic.estimate(upgrade_req_table)
 
-print "s_ip=" + str(s_ip) + ", u_ip=" + str(u_ip)
-print "Estimate 50% IP upgrade at: " + time.ctime(t0 + u_ip)
+print("s_ip=%s, u_ip=%s" % (str(s_ip), str(u_ip)))
+print("Estimate 50% IP upgrade at: " + time.ctime(t0 + u_ip))
 
-print "s_req=" + str(s_req) + ", u_req=" + str(u_req)
-print "Estimate 50% REQ upgrade at: " + time.ctime(t0 + u_req)
+print("s_req=%s, u_req=%s" %(str(s_req), str(u_req)))
+print("Estimate 50% REQ upgrade at: " + time.ctime(t0 + u_req))
