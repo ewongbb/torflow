@@ -40,9 +40,9 @@ t0 = time.mktime(time.strptime("2007-03-05", "%Y-%m-%d"))
 upgrade_ip_table = {}
 upgrade_req_table = {}
 
-l = f.readline()
-while l:
-    ln = l.split(" ")
+read_line = f.readline()
+while read_line:
+    ln = read_line.split(" ")
     if ln[0] == "written":
         written = time.mktime(time.strptime(ln[1], "%Y-%m-%d"))
         nsreqs = 0
@@ -72,7 +72,7 @@ while l:
         upgrade_ip_table[written - t0] = nsips / (nsips + (v2ips / 8.0))
         upgrade_req_table[written - t0] = nsreqs / (nsreqs + (v2reqs / 8.0))
 
-    l = f.readline()
+    read_line = f.readline()
 
 (u_ip, s_ip) = logistic.estimate(upgrade_ip_table)
 (u_req, s_req) = logistic.estimate(upgrade_req_table)
