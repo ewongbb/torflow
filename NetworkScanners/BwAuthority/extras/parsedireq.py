@@ -52,19 +52,19 @@ while read_line:
         line = f.readline()
         while line and not line.startswith("ns-ips"):
             line = f.readline()
-        nsreqs = total_countries(l)
+        nsreqs = total_countries(line)
         line = f.readline()
         while line and not line.startswith("ns-v2-ips"):
             line = f.readline()
-        v2reqs = total_countries(l)
+        v2reqs = total_countries(line)
         line = f.readline()
         while line and not line.startswith("n-ns-reqs"):
             line = f.readline()
-        nsips = total_countries(l)
+        nsips = total_countries(line)
         line = f.readline()
         while line and not line.startswith("n-v2-ns-reqs"):
             line = f.readline()
-        v2ips = total_countries(l)
+        v2ips = total_countries(line)
 
         # print "Written at "+time.ctime(written)+" v3-ip: "+str(nsips)+\
         #       " v2-ip: "+str(v2ips)+" v3-reqs: "+str(nsreqs)+\
