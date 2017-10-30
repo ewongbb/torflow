@@ -174,7 +174,7 @@ def http_request(address):
             plog('ERROR', 'An unknown HTTP error occured')
             traceback.print_exc()
         return 0
-    except:
+    except Exception:
         plog('ERROR', 'An unknown HTTP error occured')
         traceback.print_exc()
         return 0
@@ -398,7 +398,7 @@ def main(argv):
         try:
             (c, hdlr) = setup_handler(out_dir,
                                       tor_dir + "/control_auth_cookie")
-        except Exception, e:
+        except Exception:
             traceback.print_exc()
             plog("WARN", "Can't connect to Tor: " + str(e))
             sys.exit(STOP_PCT_REACHED)
@@ -547,6 +547,6 @@ if __name__ == '__main__':
         traceback.print_exc()
     except SystemExit, e:
         sys.exit(e)
-    except Exception, e:
+    except Exception:
         plog("ERROR", "An unexpected error occured.")
         traceback.print_exc()

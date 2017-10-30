@@ -21,12 +21,12 @@ import logistic
 
 def total_countries(l):
     reqs = 0
-    l = l.split(" ")
-    if len(l) != 2:
-        print l
+    ln = l.split(" ")
+    if len(ln) != 2:
+        print ln
         sys.exit(1)
-    l = l[1].split(",")
-    for c in l:
+    ln = ln[1].split(",")
+    for c in ln:
         c = c.split("=")
         reqs += int(c[1])
     return reqs
@@ -42,28 +42,28 @@ upgrade_req_table = {}
 
 l = f.readline()
 while l:
-    l = l.split(" ")
-    if l[0] == "written":
-        written = time.mktime(time.strptime(l[1], "%Y-%m-%d"))
+    ln = l.split(" ")
+    if ln[0] == "written":
+        written = time.mktime(time.strptime(ln[1], "%Y-%m-%d"))
         nsreqs = 0
         v2reqs = 0
         nsips = 0
         v2ips = 0
-        l = f.readline()
-        while l and not l.startswith("ns-ips"):
-            l = f.readline()
+        line = f.readline()
+        while line and not line.startswith("ns-ips"):
+            line = f.readline()
         nsreqs = total_countries(l)
-        l = f.readline()
-        while l and not l.startswith("ns-v2-ips"):
-            l = f.readline()
+        line = f.readline()
+        while line and not line.startswith("ns-v2-ips"):
+            line = f.readline()
         v2reqs = total_countries(l)
-        l = f.readline()
-        while l and not l.startswith("n-ns-reqs"):
-            l = f.readline()
+        line = f.readline()
+        while line and not line.startswith("n-ns-reqs"):
+            line = f.readline()
         nsips = total_countries(l)
-        l = f.readline()
-        while l and not l.startswith("n-v2-ns-reqs"):
-            l = f.readline()
+        line = f.readline()
+        while line and not line.startswith("n-v2-ns-reqs"):
+            line = f.readline()
         v2ips = total_countries(l)
 
         # print "Written at "+time.ctime(written)+" v3-ip: "+str(nsips)+\
