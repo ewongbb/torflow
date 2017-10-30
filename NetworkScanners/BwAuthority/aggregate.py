@@ -112,7 +112,7 @@ class Node:
         self.measured_at = vote.measured_at  # Set
 
     def copy_vote(self, vote):
-        self.new_bw = vote.bw*1000  # Not set yet
+        self.new_bw = vote.bw * 1000  # Not set yet
         self.pid_bw = vote.pid_bw  # Not set yet
         self.pid_error_sum = vote.pid_error_sum  # Not set yet
         self.pid_delta = vote.pid_delta  # Not set yet
@@ -303,20 +303,20 @@ class ConsensusJunk:
                     self.use_mercy = True
                     plog("INFO", "Showing mercy on gimpy nodes")
                 elif p.startswith("bwauthkp="):
-                    self.K_p = int(p.split("=")[1])/10000.0
+                    self.K_p = int(p.split("=")[1]) / 10000.0
                     plog("INFO", "Got K_p=%f from consensus." % self.K_p)
                 elif p.startswith("bwauthti="):
-                    self.T_i = (int(p.split("=")[1])/10000.0)
+                    self.T_i = (int(p.split("=")[1]) / 10000.0)
                     plog("INFO", "Got T_i=%f from consensus." % self.T_i)
                 elif p.startswith("bwauthtd="):
-                    self.T_d = (int(p.split("=")[1])/10000.0)
+                    self.T_d = (int(p.split("=")[1]) / 10000.0)
                     plog("INFO", "Got T_d=%f from consensus." % self.T_d)
                 elif p.startswith("bwauthtidecay="):
-                    self.T_i_decay = (int(p.split("=")[1])/10000.0)
+                    self.T_i_decay = (int(p.split("=")[1]) / 10000.0)
                     plog("INFO",
                          "Got T_i_decay=%f from consensus." % self.T_i_decay)
                 elif p.startswith("bwauthpidmax="):
-                    self.pid_max = (int(p.split("=")[1])/10000.0)
+                    self.pid_max = (int(p.split("=")[1]) / 10000.0)
                     plog("INFO",
                          "Got pid_max=%f from consensus." % self.pid_max)
                 elif p.startswith("bwauthguardrate="):
@@ -332,10 +332,10 @@ class ConsensusJunk:
             self.K_i = 0
             self.K_i_decay = 0
         else:
-            self.K_i = self.K_p/self.T_i
-            self.K_i_decay = (1.0-self.T_i_decay/self.T_i)
+            self.K_i = self.K_p / self.T_i
+            self.K_i_decay = (1.0 - self.T_i_decay / self.T_i)
 
-        self.K_d = self.K_p*self.T_d
+        self.K_d = self.K_p * self.T_d
 
         plog("INFO",
              "Got K_p=%f K_i=%f K_d=%f K_i_decay=%f" % (self.K_p,
@@ -350,7 +350,7 @@ class ConsensusJunk:
                 cs_bytes, re.M).group(1).split()
             for b in bw_weights:
                 pair = b.split("=")
-                self.bw_weights[pair[0]] = int(pair[1])/10000.0
+                self.bw_weights[pair[0]] = int(pair[1]) / 10000.0
         except Exception:
             plog("WARN", "No bandwidth weights in consensus!")
             self.bw_weights["Wgd"] = 0
@@ -358,12 +358,12 @@ class ConsensusJunk:
 
 
 def write_file_list(datadir):
-    files = {64*1024: "64M",
-             32*1024: "32M",
-             16*1024: "16M",
-             8*1024: "8M",
-             4*1024: "4M",
-             2*1024: "2M",
+    files = {64 * 1024: "64M",
+             32 * 1024: "32M",
+             16 * 1024: "16M",
+             8 * 1024: "8M",
+             4 * 1024: "4M",
+             2 * 1024: "2M",
              1024: "1M",
              512: "512k",
              256: "256k",
@@ -391,7 +391,7 @@ def write_file_list(datadir):
         if pct == prev_pct:
             continue
         for f in xrange(len(file_sizes)):
-            if bw > file_sizes[f]*1024 and file_sizes[f] > prev_size:
+            if bw > file_sizes[f] * 1024 and file_sizes[f] > prev_size:
                 next_f = max(f - 1, 0)
                 file_pairs.append((pct, files[file_sizes[next_f]]))
                 prev_size = file_sizes[f]
@@ -434,7 +434,7 @@ def sum_lambda_nodes_iter(in_n, in_fn, in_nodes):
 
 
 def main(argv):
-    TorUtil.read_config(argv[1]+"/scanner.1/bwauthority.cfg")
+    TorUtil.read_config(argv[1] + "/scanner.1/bwauthority.cfg")
     TorUtil.logfile = "data/aggregate-debug.log"
 
     (branch, head) = TorUtil.get_git_version(PATH_TO_TORFLOW_REPO)
@@ -486,7 +486,7 @@ def main(argv):
     # and use the oldest for the timestamp of the result.
     # That way we can ensure all the scanners continue running.
     scanner_timestamps = {}
-    for da in argv[1:-1]:
+    for da in argv[1 : -1]:
         # First, create a list of the most recent files in the
         # scan dirs that are recent enough
         for root, dirs, f in os.walk(da):
@@ -578,12 +578,12 @@ def main(argv):
                              nodes.itervalues())
             if len(c_nodes) > 0:
                 true_filt_avg[cl] = sum(
-                    map(lambda n: n.filt_bw, c_nodes))/float(len(c_nodes))
+                    map(lambda n: n.filt_bw, c_nodes)) / float(len(c_nodes))
                 true_strm_avg[cl] = sum(
-                    map(lambda n: n.strm_bw, c_nodes))/float(len(c_nodes))
+                    map(lambda n: n.strm_bw, c_nodes)) / float(len(c_nodes))
                 true_circ_avg[cl] = sum(
-                    map(lambda n: (1.0-n.circ_fail_rate),
-                        c_nodes))/float(len(c_nodes))
+                    map(lambda n: (1.0 - n.circ_fail_rate),
+                        c_nodes)) / float(len(c_nodes))
             else:
                 true_filt_avg[cl] = 0.0
                 true_strm_avg[cl] = 0.0
@@ -633,7 +633,7 @@ def main(argv):
                 f_nodes = filter(lambda n: n.desc_bw >= pid_avg, f_nodes)
                 prev_pid_avg = pid_avg
                 pid_avg = sum(map(lambda n: n.filt_bw,
-                                  f_nodes))/float(len(f_nodes))
+                                  f_nodes)) / float(len(f_nodes))
 
             for cl in ["Guard+Exit", "Guard", "Exit", "Middle"]:
                 true_filt_avg[cl] = filt_avg
@@ -641,7 +641,7 @@ def main(argv):
                 true_circ_avg[cl] = circ_avg
                 pid_tgt_avg[cl] = pid_avg
 
-            plog("INFO", "Network pid_avg: "+str(pid_avg))
+            plog("INFO", "Network pid_avg: " + str(pid_avg))
     else:
         plog("INFO", "PID control disabled")
         filt_avg = sum(map(lambda n: n.filt_bw,
