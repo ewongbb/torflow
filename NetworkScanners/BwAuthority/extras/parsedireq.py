@@ -80,5 +80,5 @@ while read_line:
 print("s_ip=%s, u_ip=%s" % (str(s_ip), str(u_ip)))
 print("Estimate 50% IP upgrade at: " + time.ctime(t0 + u_ip))
 
-print("s_req=%s, u_req=%s" %(str(s_req), str(u_req)))
+print("s_req=%s, u_req=%s" % (str(s_req), str(u_req)))
 print("Estimate 50% REQ upgrade at: " + time.ctime(t0 + u_req))
