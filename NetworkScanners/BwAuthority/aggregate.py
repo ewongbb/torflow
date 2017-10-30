@@ -20,7 +20,7 @@ IGNORE_GUARDS = 0
 
 # The guard measurement period is based on the client turnover
 # rate for guard nodes
-GUARD_SAMPLE_RATE = 2*7*24*60*60  # 2wks
+GUARD_SAMPLE_RATE = 2 * 7 * 24 * 60 * 60  # 2wks
 
 # PID constant defaults. May be overridden by consensus
 # https://en.wikipedia.org/wiki/PID_controller#Ideal_versus_standard_PID_form
@@ -50,10 +50,10 @@ MIN_REPORT = 60  # Percent of the network we must measure before reporting
 # all the CPU once these things run for a year or so.
 # Note that the Guard measurement interval of 2 weeks means that this
 # value can't get much below that.
-MAX_AGE = 2*GUARD_SAMPLE_RATE
+MAX_AGE = 2 * GUARD_SAMPLE_RATE
 
 # If the resultant scan file is older than 1.5 days, something is wrong
-MAX_SCAN_AGE = 60*60*24*1.5
+MAX_SCAN_AGE = 60 * 60 * 24 * 1.5
 
 # path to git repos (.git)
 PATH_TO_TORFLOW_REPO = '../../.git/'
