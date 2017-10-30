@@ -545,7 +545,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         plog("INFO", "Ctrl + C was pressed. Exiting ... ")
         traceback.print_exc()
-    except SystemExit, e:
+    except SystemExit as e:
         sys.exit(e)
     except Exception:
         plog("ERROR", "An unexpected error occured.")

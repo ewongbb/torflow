@@ -249,11 +249,14 @@ class VoteSet:
     def __init__(self, filename):
         self.vote_map = {}
         try:
-            f = file(filename, "r")
-            f.readline()
-            for line in f.readlines():
-                vote = Vote(line)
-                self.vote_map[vote.idhex] = vote
+            with open(filename, "r") as fp:
+                i = 0
+                for line in fp:
+                    if i == 0:
+                        i += 1
+                    else:
+                        vote = Vote(line)
+                        self.vote_map[vote_idhex] = vote
         except IOError:
             plog("NOTICE", "No previous vote data.")
 
@@ -400,13 +403,12 @@ def write_file_list(datadir):
 
     file_pairs.reverse()
 
-    outfile = file(datadir + "/bwfiles.new", "w")
-    for f in file_pairs:
-        outfile.write(str(f[0]) + " " + f[1] + "\n")
-    outfile.write(".\n")
-    outfile.close()
+    with open("%s/bwfiles.new" % datadir, "w") as fp:
+        for f in file_pairs:
+            fp.write("%s %s\n" % (str(f[0]), f[1]))
+        fp.write("\n")
     # atomic on POSIX
-    os.rename(datadir + "/bwfiles.new", datadir + "/bwfiles")
+    os.rename("%s/bwfiles.new" % datadir, "%s/bwfiles" % datadir)
 
 
 def is_flag_in(check_flag, in_obj):
@@ -445,9 +447,10 @@ def main(argv):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((TorUtil.control_host, TorUtil.control_port))
     c = TorCtl.Connection(s)
-    c.debug(file(argv[1] + "/aggregate-control.log", "w", buffering=0))
-    c.authenticate_cookie(file(argv[1] + "/tor.1/control_auth_cookie",
-                               "r"))
+    with open("%s/aggregate-control.log" % argv[1], "w") as fp:
+        c.debug(fp)
+    with open("%s/tor.1/control_auth_cookie" % argv[1], "r") as fp:
+        c.authenticate_cookie(fp)
 
     ns_list = c.get_network_status()
     for n in ns_list:
@@ -465,7 +468,7 @@ def main(argv):
 
     # TODO: This is poor form.. We should subclass the Networkstatus class
     # instead of just adding members
-    for i in xrange(max_rank):
+    for i in range(max_rank):
         n = ns_list[i]
         n.list_rank = i
         if n.bandwidth is None:
@@ -496,7 +499,7 @@ def main(argv):
                     for sr, sd, files in os.walk("%s/%s/scan-data" % (da, ds)):
                         for f in files:
                             if re.search("^bws-[\S]+-done-", f):
-                                fp = file("%s/%s" % (sr, f), "r")
+                                fp = open("%s/%s" % (sr, f), "r")
                                 slicenum = "%s/%s" % (sr, fp.readline())
                                 timestamp = float(fp.readline())
                                 fp.close()
@@ -526,7 +529,7 @@ def main(argv):
 
     # Need to only use most recent slice-file for each node..
     for (s, t, f) in bw_files:
-        fp = file(f, "r")
+        fp = open(f, "r")
         fp.readline()  # slicenum
         fp.readline()  # timestamp
         for l in fp.readlines():
@@ -1056,7 +1059,7 @@ def main(argv):
                  "bwauthority.py. TimeStamp: %s" % (scanner,
                                                     time.ctime(this_scan_age)))
 
-    out = file(argv[-1], "w")
+    out = open(argv[-1], "w")
     out.write(str(scan_age) + "\n")
 
     # FIXME: Split out debugging data
