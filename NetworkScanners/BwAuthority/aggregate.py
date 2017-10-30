@@ -538,12 +538,12 @@ def main(argv):
                 else:
                     n = nodes[line.idhex]
                 n.add_line(line)
-            except ValueError, e:
+            except ValueError as e:
                 plog("NOTICE", "Conversion error %s at %s" % (str(e), l))
-            except AttributeError, e:
+            except AttributeError as e:
                 plog("NOTICE", "Slice file format error %s at %s" % (str(e),
                                                                      l))
-            except Exception, e:
+            except Exception as e:
                 plog("WARN", "Unknown slice parse error %s at %s" % (str(e),
                                                                      l))
                 traceback.print_exc()
