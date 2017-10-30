@@ -17,7 +17,7 @@ install:
 # Tests running commands
 script:
   - pep8 ./NetworkScanners/BwAuthority
-  - flake8 ./NetworkScanners/BwAuthority
+  - flake8 --ignore=E402 ./NetworkScanners/BwAuthority
 
 notifications:
   email: false
