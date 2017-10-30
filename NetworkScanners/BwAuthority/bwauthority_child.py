@@ -116,7 +116,7 @@ def choose_url(percentile):
     # Read in the bw auths file
     # here is a fine place to make sure we have bwfiles
     try:
-        f = file("./data/bwfiles", "r")
+        f = open("./data/bwfiles", "r")
     except IOError:
         write_file_list('./data')
     lines = []
@@ -127,7 +127,7 @@ def choose_url(percentile):
             break
         pair = ln.split()
         lines.append((int(pair[0]), pair[1]))
-
+    f.close()
     if not valid:
         plog("ERROR", "File size list is invalid!")
 
@@ -389,7 +389,7 @@ def main(argv):
         os.makedirs(path)
 
     if pid_file_name:
-        pidfd = file(pid_file_name, "w")
+        pidfd = open(pid_file_name, "w")
         pidfd.write("%d\n" % os.getpid())
         pidfd.close()
 
@@ -398,7 +398,7 @@ def main(argv):
         try:
             (c, hdlr) = setup_handler(out_dir,
                                       tor_dir + "/control_auth_cookie")
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
             plog("WARN", "Can't connect to Tor: " + str(e))
             sys.exit(STOP_PCT_REACHED)
@@ -510,7 +510,7 @@ def setup_handler(out_dir, cookie_file):
     s.connect((TorUtil.control_host, TorUtil.control_port))
     c = PathSupport.Connection(s)
     # c.debug(file(out_dir+"/control.log", "w", buffering=0))
-    c.authenticate_cookie(file(cookie_file, "r"))
+    c.authenticate_cookie(open(cookie_file, "r"))
     h = BwScanHandler(c, __selmgr,
                       strm_selector=PathSupport.SmartSocket.StreamSelector)
 

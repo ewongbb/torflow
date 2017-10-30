@@ -256,7 +256,7 @@ class VoteSet:
                         i += 1
                     else:
                         vote = Vote(line)
-                        self.vote_map[vote_idhex] = vote
+                        self.vote_map[vote.idhex] = vote
         except IOError:
             plog("NOTICE", "No previous vote data.")
 
@@ -393,7 +393,7 @@ def write_file_list(datadir):
         # smaller file size (ie skip this one)
         if pct == prev_pct:
             continue
-        for f in xrange(len(file_sizes)):
+        for f in range(len(file_sizes)):
             if bw > file_sizes[f] * 1024 and file_sizes[f] > prev_size:
                 next_f = max(f - 1, 0)
                 file_pairs.append((pct, files[file_sizes[next_f]]))
