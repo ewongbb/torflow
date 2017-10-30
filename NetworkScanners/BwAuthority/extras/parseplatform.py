@@ -4,7 +4,6 @@
 # distribution parameters based on this data.
 
 import time
-import math
 
 import logistic
 

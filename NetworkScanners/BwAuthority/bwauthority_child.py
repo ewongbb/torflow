@@ -288,7 +288,7 @@ def speedrace(hdlr, start_pct, stop_pct, circs_per_node, save_every, out_dir,
 
         # Always use median URL size for unmeasured nodes
         # They may be too slow..
-        url = choose_url(50) if only_measured else choose_url(start_pct)
+        url = choose_url(50) if only_unmeasured else choose_url(start_pct)
 
         plog("DEBUG",
              "Launching stream request for url " + url + " in " +

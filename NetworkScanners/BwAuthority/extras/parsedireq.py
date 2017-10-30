@@ -14,7 +14,6 @@
 # n-v2-ip
 
 import time
-import math
 import sys
 
 import logistic

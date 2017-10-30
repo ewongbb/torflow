@@ -197,13 +197,13 @@ class Line:
         try:
             self.circ_fail_rate = float(
                 re.search("[\s]*circ_fail_rate=([\S]+)[\s]*", line).group(1))
-        except Exception, e:
+        except Exception:
             self.circ_fail_rate = 0
 
         try:
             self.strm_fail_rate = float(
                 re.search("[\s]*strm_fail_rate=([\S]+)[\s]*", line).group(1))
-        except Exception, e:
+        except Exception:
             self.strm_fail_rate = 0
 
 
@@ -229,7 +229,7 @@ class Vote:
                 re.search("[\s]*pid_delta=([\S]+)[\s]*", line).group(1))
             self.pid_bw = float(
                 re.search("[\s]*pid_bw=([\S]+)[\s]*", line).group(1))
-        except Exception, e:
+        except Exception:
             plog("NOTICE", "No previous PID data.")
             self.pid_bw = self.bw
             self.pid_error = 0
@@ -238,7 +238,7 @@ class Vote:
         try:
             self.updated_at = int(
                 re.search("[\s]*updated_at=([\S]+)[\s]*", line).group(1))
-        except Exception, e:
+        except Exception:
             plog("INFO",
                  "No updated_at field for " + self.nick + "=" + self.idhex)
             self.updated_at = self.measured_at
@@ -324,7 +324,7 @@ class ConsensusJunk:
                     plog("INFO",
                          "Got guard_sample_rate=%d from consensus." %
                          self.guard_sample_rate)
-        except Exception, e:
+        except Exception:
             plog("NOTICE", "Bw auth PID control disabled due to parse error.")
             traceback.print_exc()
 
@@ -351,7 +351,7 @@ class ConsensusJunk:
             for b in bw_weights:
                 pair = b.split("=")
                 self.bw_weights[pair[0]] = int(pair[1])/10000.0
-        except Exception, e:
+        except Exception:
             plog("WARN", "No bandwidth weights in consensus!")
             self.bw_weights["Wgd"] = 0
             self.bw_weights["Wgg"] = 1.0
@@ -1034,7 +1034,7 @@ def main(argv):
          "Avg. Network +pid_error=+%s" % str(sum_lambda_nodes(n, None,
                                                               p_nodes)))
     plog("INFO",
-         "Avg. Network -pid_error=%s" % str(sum_lamdba_nodes(n, None,
+         "Avg. Network -pid_error=%s" % str(sum_lambda_nodes(n, None,
                                                              n_nodes)))
 
     plog("NOTICE",
