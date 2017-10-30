@@ -23,7 +23,7 @@ def total_countries(l):
     reqs = 0
     ln = l.split(" ")
     if len(ln) != 2:
-        print ln
+        print(ln)
         sys.exit(1)
     ln = ln[1].split(",")
     for c in ln:

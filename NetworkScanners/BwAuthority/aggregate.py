@@ -513,7 +513,7 @@ def main(argv):
                                     os.remove("%s/%s" % (sr, f))
                                     try:
                                         os.remove("%s/%s" % (sr, sqlf))
-                                    except Exception, e:
+                                    except Exception:
                                         # In some cases the sql file may
                                         # not exist
                                         pass

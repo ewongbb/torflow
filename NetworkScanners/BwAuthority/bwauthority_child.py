@@ -145,7 +145,7 @@ def http_request(address):
     request = urllib2.Request(address)
     try:
         context = ssl._create_unverified_context()
-    except Exception, e:
+    except Exception:
         context = None
     request.add_header("User-Agent", user_agent)
 
